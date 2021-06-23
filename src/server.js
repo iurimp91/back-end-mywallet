@@ -79,6 +79,7 @@ server.post("/sign-in", async (req, res) => {
         `, [email]);
 
         const user = emailValidation.rows[0];
+        console.log(user);
 
         if (user && bcrypt.compareSync(password, user.password)) {
             const token = uuid();
@@ -89,7 +90,10 @@ server.post("/sign-in", async (req, res) => {
                 VALUES ($1, $2)
             `, [user.id, token]);
 
-            return res.send(token);
+            delete user.password;
+            delete user.id;
+            user.token = token;
+            return res.send(user);
         } else {
             return res.sendStatus(404);
         }

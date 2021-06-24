@@ -79,7 +79,6 @@ server.post("/sign-in", async (req, res) => {
         `, [email]);
 
         const user = emailValidation.rows[0];
-        console.log(user);
 
         if (user && bcrypt.compareSync(password, user.password)) {
             const token = uuid();
@@ -108,6 +107,38 @@ server.post("/sign-in", async (req, res) => {
             console.log(err.message);
             return res.sendStatus(500);
         }
+    }
+});
+
+server.get("/cash-flow", async (req, res) => {
+    try {
+        const authorization = req.headers["authorization"];
+        const token = authorization?.replace("Bearer ", "");
+
+        if(!token) return res.sendStatus(401);
+        
+        const tokenValidation = await connection.query(`
+            SELECT * FROM sessions
+            JOIN users
+            ON sessions."userId" = users.id
+            WHERE sessions.token = $1
+        `, [token]);
+        
+        const user = tokenValidation.rows[0];
+
+        if(user) {  
+            const result = await connection.query(`
+                SELECT * FROM cash_flow
+                WHERE "userId" = $1
+            `, [user.id]);
+
+            return res.send(result.rows);
+        } else {
+            return res.sendStatus(401);
+        }
+    } catch(err) {
+        console.log(err);
+        res.sendStatus(500);
     }
 });
 

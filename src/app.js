@@ -5,6 +5,7 @@ import joi from "joi";
 import { v4 as uuid } from "uuid";
 import dayjs from "dayjs";
 import connection from "./database.js";
+import { stripHtml } from "string-strip-html";
 
 const app = express();
 app.use(cors());
@@ -31,11 +32,14 @@ app.post("/sign-up", async (req, res) => {
 
         const passwordHash = bcrypt.hashSync(password, 12);
 
+        const cleanName = stripHtml(name).result.trim();
+        const cleanEmail = stripHtml(email).result.trim();
+
         await connection.query(`
             INSERT INTO users
             (name, email, password)
             VALUES ($1, $2, $3)
-        `,[name, email, passwordHash]);
+        `,[cleanName, cleanEmail, passwordHash]);
 
         return res.sendStatus(201);
     } catch(err) {
@@ -83,7 +87,7 @@ app.post("/sign-in", async (req, res) => {
             delete user.password;
             delete user.id;
             user.token = token;
-            return res.send(user);
+            return res.send(user).status(200);
         } else {
             return res.sendStatus(404);
         }
@@ -126,12 +130,12 @@ app.get("/cash-flow", async (req, res) => {
 
             result.rows.forEach(item => item.date = dayjs(item.date).format("DD/MM"));
 
-            return res.send(result.rows);
+            return res.send(result.rows).status(201);
         } else {
             return res.sendStatus(401);
         }
     } catch(err) {
-        console.log(err);
+        console.log(err.message);
         return res.sendStatus(500);
     }
 });
@@ -164,12 +168,14 @@ app.post("/input", async (req, res) => {
 
         if(user) {
             const date = dayjs().format("DD-MM-YYYY HH:mm:ss");
+            const cleanDescription = stripHtml(description).result.trim();
+            const cleanType = stripHtml(type).result.trim();
 
             const result = connection.query(`
                 INSERT INTO cash_flow
                 ("userId", date, description, value, type)
                 VALUES ($1, $2, $3, $4, $5)
-            `, [user.userId, date, description, value, type]);
+            `, [user.userId, date, cleanDescription, value, cleanType]);
 
             return res.sendStatus(200);
         } else {
@@ -220,10 +226,6 @@ app.post("/sign-out", async (req, res) => {
         console.log(err.message);
         return res.sendStatus(500);
     }
-});
-
-app.get("/banana", (req, res) => {
-    res.sendStatus(200);
 });
 
 export default app;

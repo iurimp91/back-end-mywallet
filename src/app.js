@@ -27,7 +27,7 @@ app.post("/sign-up", async (req, res) => {
             WHERE email = $1
         `, [email]);
 
-        if(emailValidation.rows.length !== 0) return res.sendStatus(401);
+        if(emailValidation.rows.length !== 0) return res.sendStatus(409);
 
         const passwordHash = bcrypt.hashSync(password, 12);
 
@@ -163,7 +163,7 @@ app.post("/input", async (req, res) => {
         const user = tokenValidation.rows[0];
 
         if(user) {
-            const date = dayjs().format("DD-MM-YYYY");
+            const date = dayjs().format("DD-MM-YYYY HH:mm:ss");
 
             const result = connection.query(`
                 INSERT INTO cash_flow

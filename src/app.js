@@ -190,6 +190,38 @@ app.post("/input", async (req, res) => {
     }
 });
 
+app.post("/sign-out", async (req, res) => {
+    try {
+        const authorization = req.headers["authorization"];
+        const token = authorization.replace("Bearer ", "");
+
+        if(!token) return res.sendStatus(401);
+
+        const tokenValidation = await connection.query(`
+            SELECT * FROM sessions
+            JOIN users
+            ON sessions."userId" = users.id
+            WHERE sessions.token = $1 
+        `, [token]);
+
+        const user = tokenValidation.rows[0];
+
+        if (user) {
+            await connection.query(`
+                DELETE FROM sessions
+                WHERE "userId" = $1
+            `, [user.userId]);
+
+            return res.sendStatus(200);
+        } else {
+            return res.sendStatus(401);
+        }
+    } catch(err) {
+        console.log(err.message);
+        return res.sendStatus(500);
+    }
+});
+
 app.get("/banana", (req, res) => {
     res.sendStatus(200);
 });

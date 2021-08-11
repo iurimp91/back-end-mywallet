@@ -5,12 +5,12 @@ import app from "../src/app.js";
 import connection from "../src/database.js";
 
 beforeEach(async () => {
-    await connection.query(`DELETE FROM users`);
-    await connection.query(`DELETE FROM cash_flow`);
+    await connection.query(`TRUNCATE users RESTART IDENTITY`);
+    await connection.query(`TRUNCATE cash_flow RESTART IDENTITY`);
 });
 
 afterAll(async () => {
-    await connection.query(`DELETE FROM users`);
+    await connection.query(`TRUNCATE users RESTART IDENTITY`);
     connection.end();
 });
 

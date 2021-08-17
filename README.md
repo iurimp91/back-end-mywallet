@@ -52,7 +52,7 @@ npm run dev
 npm run build
 ```
 7. Finally access the front-end on your favorite browser (unless it is Internet Explorer. In this case, review your life decisions)
-PS: If you want to run the tests use
+8. If you want to run the tests use
 ```bash
 npm test
 ```
